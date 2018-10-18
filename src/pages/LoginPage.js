@@ -1,9 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput, Button, ActivityIndicator, Alert} from 'react-native';
 import firebase from 'firebase';
+import { connect } from 'react-redux';
+
+import { tryLogin } from '../actions';
+
 import FormRow from '../components/FormRow';
 
-export default class LoginPage extends React.Component{
+class LoginPage extends React.Component{
 	constructor(props) {
 	  	super(props);
 		
@@ -35,60 +39,28 @@ export default class LoginPage extends React.Component{
 	}
 
 	tryLogin(){
+		this.setState({ isLoading: true, message: '' });
 		const { mail, password } = this.state;
-		const loginUserSuccess = user => {
-			this.setState({ message : "Sucesso!"});
-			this.props.navigation.navigate('Main');
-		};
-		const loginUserFailed = error => {
-			this.setState({ message : this.getMessageByErrorCode(error.code) });
-		};
 
-
-		if(mail == "" ){
-			this.setState({ message: 'É necessário informar o e-mail' });
-		}else if(password == "" ){
-			this.setState({ message: 'É necessário informar a senha' });
-		}else{
-			this.setState({ isLoading: true, message: '' });
-			firebase
-				.auth()
-				.signInWithEmailAndPassword(mail, password)
-				.then(loginUserSuccess)//success - se der tudo certo a autenticacao
-				.catch(error => {
-					if(error.code === 'auth/user-not-found'){
-						Alert.alert(
-							/* title */ 'Usuário não encontrado', 
-							/* message */ 'Deseja se cadastrar usando as informações inseridas?', 
-							/* [{text, onPress}] */
-							[{
-								text: 'Não',
-								onPress: () => {},
-								style: 'cancel'
-							}, {
-								text: 'Sim',
-								onPress: () => {
-									firebase
-										.auth()
-										.createUserWithEmailAndPassword(mail, password)
-										.then(loginUserSuccess)
-										.catch(loginUserFailed)
-								}
-							}],
-							{ cancelable: false } 
-						)
-					} else {
-						loginUserFailed
-					}
-					//auth/wrong-password //senha errada
-					//auth/user-not-found  //email nao cadastrado
-					//auth/invalid-email //email invalido
-				})//error - se nao der certo a autenticacao
-				.then(() => {
-					this.setState({ isLoading: false });
-				})//vai executar depois independente do resultado
-			;
-		}
+		this.props.tryLogin({ mail, password })
+			.then((user) => {
+				if(user){
+					//Essa função deleta todo o historico de navegação
+					//o botao voltar do android fica vazio, se clicar nele sai do app
+					return this.props.navigation.replace('Main');
+					//this.props.navigation.navigate('Main');
+				};
+				this.setState({
+					isLoading: false,
+					messagem: ''
+				})
+			})
+			.catch(error => {
+				this.setState({
+					isLoading: false,
+					message: this.getMessageByErrorCode(error.code)
+				});
+			});
 	}
 
 	getMessageByErrorCode(errorCode){
@@ -100,7 +72,7 @@ export default class LoginPage extends React.Component{
 			case 'auth/invalid-email': return 'E-mail inválido';
 			break;
 		}
-		return 'Erro desconhecido. Tente novamente.';
+		return errorCode;
 	}
 
 	renderMessage(){
@@ -126,7 +98,6 @@ export default class LoginPage extends React.Component{
 	render(){
 		return(
 			<View style={styles.container}>
-				<FormRow>
 					<Text style={ styles.label }>E-mail</Text>
 					<TextInput
 						style={ styles.input }
@@ -142,7 +113,6 @@ export default class LoginPage extends React.Component{
 						secureTextEntry
 						onChangeText={value => this.onChangeHandler('password', value)}
 					/>
-				</FormRow>
 				<View style={styles.button}>
 					{ this.renderButton() }
 					{ this.renderMessage() }
@@ -168,3 +138,12 @@ const styles = StyleSheet.create({
 		paddingTop: 10
 	},
 });
+
+export default connect(
+						/*mapStateToProps*/ null, 
+						/*mapDispatchToProps*/ { tryLogin }
+					)(LoginPage);
+
+
+
+
