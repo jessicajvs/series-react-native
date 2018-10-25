@@ -1,6 +1,8 @@
 import { combineReducers } from 'redux';
 
 import userReducer from './userReducer';
+import serieFormReducer from './serieFormReducer';
+import seriesReducer from './seriesReducer';
 
 //Permite construir reducer para cada action
 export default combineReducers({
@@ -9,5 +11,7 @@ export default combineReducers({
 	//e quando a key e o value são iguais só é necessário informar uma vez
 	//assim, ficaria apenas:
 	//user e no import apenas user também
-	user: userReducer
+	user: userReducer,
+	serieForm: serieFormReducer,
+	series: seriesReducer
 });

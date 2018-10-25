@@ -1,11 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, Button, ActivityIndicator, Alert} from 'react-native';
-import firebase from 'firebase';
+import { 
+	View, 
+	Text, 
+	StyleSheet, 
+	TextInput, 
+	ActivityIndicator, 
+	Alert} from 'react-native';
+import firebase from "@firebase/app";
 import { connect } from 'react-redux';
 
 import { tryLogin } from '../actions';
-
 import FormRow from '../components/FormRow';
+import ButtonCustom from '../components/ButtonCustom';
 
 class LoginPage extends React.Component{
 	constructor(props) {
@@ -49,7 +55,7 @@ class LoginPage extends React.Component{
 					//o botao voltar do android fica vazio, se clicar nele sai do app
 					return this.props.navigation.replace('Main');
 					//this.props.navigation.navigate('Main');
-				};
+				}
 				this.setState({
 					isLoading: false,
 					messagem: ''
@@ -66,13 +72,10 @@ class LoginPage extends React.Component{
 	getMessageByErrorCode(errorCode){
 		switch(errorCode){
 			case 'auth/wrong-password': return 'Senha incorreta';
-			break;
 			case 'auth/user-not-found': return 'Usuário não encontrado';
-			break;
 			case 'auth/invalid-email': return 'E-mail inválido';
-			break;
+			default: return errorCode;
 		}
-		return errorCode;
 	}
 
 	renderMessage(){
@@ -90,16 +93,18 @@ class LoginPage extends React.Component{
 	renderButton(){
 		if(this.state.isLoading)
 			return <ActivityIndicator />;
-		
-		return (<Button title="Entrar" style={styles.button}
-						onPress={() => this.tryLogin()}/>);
+
+		return (<ButtonCustom title="ENTRAR" onPress={() => this.tryLogin()} />);
 	}
 
 	render(){
 		return(
 			<View style={styles.container}>
+				<FormRow>
 					<Text style={ styles.label }>E-mail</Text>
 					<TextInput
+						underlineColorAndroid="#000"
+						autoCapitalize="none" 
 						style={ styles.input }
 						placeholder="user@hotmail.com"
 						value={this.state.mail}
@@ -107,13 +112,16 @@ class LoginPage extends React.Component{
 					/>
 					<Text style={ styles.label }>Senha</Text>
 					<TextInput
+						underlineColorAndroid="#000"
+						autoCapitalize="none" 
 					  	style={ styles.input }
 						placeholder="******"
 						value={this.state.password}
 						secureTextEntry
 						onChangeText={value => this.onChangeHandler('password', value)}
 					/>
-				<View style={styles.button}>
+				</FormRow>
+				<View style={styles.containerButton}>
 					{ this.renderButton() }
 					{ this.renderMessage() }
 				</View>
@@ -127,8 +135,11 @@ const styles = StyleSheet.create({
 		flex:1,
 		paddingTop: 95
 	},
-	button:{
-		padding: 15,
+	containerButton:{
+		paddingTop:  20,
+	  	paddingBottom:  10,
+	  	paddingLeft: 4,
+	  	paddingRight: 4,
 	},
 	input:{
 		padding: 10

@@ -1,6 +1,5 @@
 import firebase from 'firebase';
-
-import { Alert} from 'react-native';
+import { Alert } from 'react-native';
 
 /*type
 actionCreator*/
@@ -33,18 +32,18 @@ const userLogout = () => ({
 		Com o thunk é um pouco mais facil de aprender e escrever
 
 */
-export const tryLogin = ({ mail, password }) => (dispatch) => {
+export const tryLogin = ({ mail, password }) => dispatch => {
 	return firebase
 		.auth()
 		.signInWithEmailAndPassword(mail, password)
 		.then(user => {
 			const action = userLoginSuccess(user);
 			dispatch(action);
-
+			return user;
 		})//success - se der tudo certo a autenticacao
 		.catch(error => {
-			return new Promise((resolve, reject) => {
-				if(error.code === 'auth/user-not-found'){
+			if(error.code === 'auth/user-not-found'){
+				return new Promise((resolve, reject) => {
 					Alert.alert(
 						//title 
 						'Usuário não encontrado', 
@@ -67,9 +66,10 @@ export const tryLogin = ({ mail, password }) => (dispatch) => {
 						}],
 						{ cancelable: false } 
 					)
-				}
-				reject(error);
-			});
+				});
+			}
+			return Promise.reject(error);
+			
 			//auth/wrong-password //senha errada
 			//auth/user-not-found  //email nao cadastrado
 			//auth/invalid-email //email invalido
